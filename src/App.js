@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { statesData } from './data';
 import './App.css';
 import Select from 'react-select';
-const center = [47.654444, 57.9340307];
 
+const center = [47.654444, 57.9340307];
 export default function App() {
-  const [selectValue, setSelectValue] = useState(' ');
+  const [selectValue, setSelectValue] = useState(0);
   const geoObjects = statesData.features.map((state) => {
-    const geoNames = state.properties.NAME_2;
+    const geoNames = state.properties.NAME_1;
 
     return geoNames;
   });
@@ -21,14 +21,14 @@ export default function App() {
       label: item,
     }));
   };
-
+ 
   return (
     <div className="map-main-container">
       <Select
         options={newGeoArr()}
         defaultValue={selectValue}
         className="custom-select"
-        onChange={(value) => setSelectValue(value)}
+        onChange={({ value }) => setSelectValue(value)}
       />
       <MapContainer className="map-container" center={center} zoom={5}>
         <TileLayer
@@ -41,12 +41,11 @@ export default function App() {
             item[0],
           ]);
           <Marker position={center} />;
-
           return (
             <Polygon
-            
               pathOptions={{
-                fillColor: '#FD8D3C',
+                fillColor:
+                  selectValue === state.properties.NAME_1 ? 'red' : '#FD8D3C',
                 fillOpacity: 0.7,
                 weight: 2,
                 opacity: 1,
@@ -77,7 +76,7 @@ export default function App() {
                   });
                 },
                 click: (e) => {
-                  console.log(state.properties.NAME_2);
+                  console.log(state.properties.NAME_1);
                   const layer = e.target;
                   layer.setStyle({
                     fillOpacity: 0.7,
@@ -89,7 +88,7 @@ export default function App() {
                 },
               }}
             >
-              <Popup>{state.properties.NAME_2}</Popup>
+              <Popup>{state.properties.NAME_1}</Popup>
             </Polygon>
           );
         })}
