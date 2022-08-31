@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { statesData } from './data';
@@ -7,25 +7,29 @@ import Select from 'react-select';
 const center = [47.654444, 57.9340307];
 
 export default function App() {
-  // const [selectValue, setSelectValue] = useState(' ');
+  const [selectValue, setSelectValue] = useState(' ');
   const geoObjects = statesData.features.map((state) => {
     const geoNames = state.properties.NAME_2;
 
     return geoNames;
   });
-  // console.log(geoObjects);
-  const newGeoArr = () => {
-    const geoNamesOptions = [];
-    geoObjects.map((item) => {
-      geoNamesOptions.push({ value: item, label: item });
-    });
+  console.log(geoObjects);
 
-    return geoNamesOptions;
+  const newGeoArr = () => {
+    return geoObjects.map((item) => ({
+      value: item,
+      label: item,
+    }));
   };
 
   return (
     <div className="map-main-container">
-      <Select options={newGeoArr()} className="custom-select" />
+      <Select
+        options={newGeoArr()}
+        defaultValue={selectValue}
+        className="custom-select"
+        onChange={(value) => setSelectValue(value)}
+      />
       <MapContainer className="map-container" center={center} zoom={5}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -40,6 +44,7 @@ export default function App() {
 
           return (
             <Polygon
+            
               pathOptions={{
                 fillColor: '#FD8D3C',
                 fillOpacity: 0.7,
@@ -71,17 +76,17 @@ export default function App() {
                     fillColor: '#FD8D3C',
                   });
                 },
-                // click: (e) => {
-                //   console.log(state.properties.NAME_2);
-                //   const layer = e.target;
-                //   layer.setStyle({
-                //     fillOpacity: 0.7,
-                //     weight: 2,
-                //     dashArray: "3",
-                //     color: "white",
-                //     fillColor: "white",
-                //   });
-                // },
+                click: (e) => {
+                  console.log(state.properties.NAME_2);
+                  const layer = e.target;
+                  layer.setStyle({
+                    fillOpacity: 0.7,
+                    weight: 2,
+                    dashArray: '3',
+                    color: 'white',
+                    fillColor: 'white',
+                  });
+                },
               }}
             >
               <Popup>{state.properties.NAME_2}</Popup>
