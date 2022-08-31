@@ -1,4 +1,20 @@
 .leaflet-container {
     width: 100vw;
     height: 100vh;
-  }
+}
+.flex {
+    display: flex;
+    justify-content: space-between;
+}
+.map-container {
+
+}
+.left {
+
+}
+.input__filter {
+position: fixed;
+width: 200px;
+height: 40px;
+background-color: aqua;
+}
