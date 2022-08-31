@@ -6,15 +6,17 @@
     display: flex;
     justify-content: space-between;
 }
-.map-container {
 
+.map-main-container {
+    position: relative;
 }
-.left {
-
-}
-.input__filter {
-position: fixed;
-width: 200px;
-height: 40px;
-background-color: aqua;
+.map-main-container input {
+    position: absolute;
+    top: 5%;
+    left: 10%;
+    z-index: 991;
+    position: fixed;
+    width: 200px;
+    height: 40px;
+    background-color: aqua;
 }
