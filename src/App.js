@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { statesData } from "./geo";
-import { dataRegions } from "./data";
-import "./App.css";
-import Select from "react-select";
+import React, { useState, useMemo, useCallback } from 'react';
+import { MapContainer, TileLayer, Polygon, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { statesData } from './geo';
+import { dataRegions } from './data';
+import './App.css';
+import Select from 'react-select';
 const center = [47.654444, 57.9340307];
 
 export default function App() {
@@ -17,15 +17,15 @@ export default function App() {
 
   const geoObjects = useMemo(
     () =>
-      statesData.features.map((state) => {
-        const geoNames = state.properties.NAME_1;
-
-        return geoNames;
-      }),
+      statesData.features.map((state) => ({
+        value: state.properties.GID_1,
+        label: state.properties.NAME_1,
+      })),
     []
   );
-
-
+  console.log(geoObjects);
+  // Мемо для того, чтобы функция не запускалась при
+  // каждом ререндере, а только при изменении selectValue (области)
   const geoObjects2 = useMemo(
     () =>
       dataRegions.features
@@ -37,6 +37,8 @@ export default function App() {
         }),
     [selectValue]
   );
+
+  console.log(geoObjects2);
 
   const newGeoArr = () =>
     geoObjects
@@ -54,32 +56,35 @@ export default function App() {
         label: item,
       }));
 
-  console.log(newGeoArr2());
   // useCallback для оптимизации, чтобы функция не
   // генерилась при каждом ререндере
   const checkFillColor = useCallback(
     (state, region) => {
       if (selectValue2 === region) {
-        return "green";
+        return 'green';
       }
       if (selectValue === state) {
-        return "red";
+        return 'red';
       }
-      return "#FD8D3C";
+      return '#FD8D3C';
     },
     [selectValue, selectValue2]
   );
 
+  const changeRegion = (value) => {
+    setIsSelected(false);
+    setSelectValue(value);
+    setSelectValue2(0);
+  };
+  console.log(selectValue);
   return (
     <div className="map-main-container">
       <Select
-        options={newGeoArr()}
+        options={geoObjects}
         defaultValue={selectValue}
         className="custom-select"
         onChange={({ value }) => {
-          setIsSelected(false);
-          setSelectValue(value);
-          setSelectValue2(0);
+          changeRegion(value);
         }}
       />
       <Select
@@ -98,32 +103,33 @@ export default function App() {
             item[1],
             item[0],
           ]);
+
           <Marker position={center} />;
           return (
             <Polygon
               key={index}
               pathOptions={{
                 fillColor: checkFillColor(
-                  state?.properties.NAME_1,
+                  state?.properties.GID_1,
                   state?.properties?.NAME_2
                 ),
                 fillOpacity: 0.7,
                 weight: 2,
                 opacity: 1,
                 dashArray: 3,
-                color: "white",
+                color: 'white',
               }}
               positions={coordinates}
               eventHandlers={{
                 mouseover: (e) => {
                   const layer = e.target;
                   layer.setStyle({
-                    dashArray: "",
-                    fillColor: "#BD0026",
+                    dashArray: '',
+                    fillColor: '#BD0026',
                     fillOpacity: 0.7,
                     weight: 2,
                     opacity: 1,
-                    color: "white",
+                    color: 'white',
                   });
                 },
                 mouseout: (e) => {
@@ -131,10 +137,10 @@ export default function App() {
                   layer.setStyle({
                     fillOpacity: 0.7,
                     weight: 2,
-                    dashArray: "3",
-                    color: "white",
+                    dashArray: '3',
+                    color: 'white',
                     fillColor: checkFillColor(
-                      state?.properties.NAME_1,
+                      state?.properties.GID_1,
                       state?.properties?.NAME_2
                     ),
                   });
@@ -144,9 +150,9 @@ export default function App() {
                   layer.setStyle({
                     fillOpacity: 0.7,
                     weight: 2,
-                    dashArray: "3",
-                    color: "white",
-                    fillColor: "white",
+                    dashArray: '3',
+                    color: 'white',
+                    fillColor: 'white',
                   });
                 },
               }}
