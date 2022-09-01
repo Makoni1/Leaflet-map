@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { statesData } from "./data";
@@ -6,55 +6,94 @@ import "./App.css";
 import Select from "react-select";
 
 const center = [47.654444, 57.9340307];
+
 export default function App() {
+  const [isFirstSelected, setIsSelected] = useState(true);
   const [selectValue, setSelectValue] = useState(0);
   const [selectValue2, setSelectValue2] = useState(0);
-  const geoObjects = statesData.features.map((state) => {
-    const geoNames = state.properties.NAME_1;
 
-    return geoNames;
-  });
-  console.log(geoObjects);
+  // Мемо для того, чтобы функция не запускалась при
+  // каждом ререндере
 
-  const geoObjects2 = statesData.features.map((state) => {
-    const geoNames2 = state.properties.NAME_2;
+  const geoObjects = useMemo(
+    () =>
+      statesData.features.map((state) => {
+        const geoNames = state.properties.NAME_1;
 
-    return geoNames2;
-  });
-  console.log(geoObjects2);
+        return geoNames;
+      }),
+    []
+  );
 
-  const newGeoArr = () => {
-    return geoObjects.map((item) => ({
+  // Мемо для того, чтобы функция не запускалась при
+  // каждом ререндере, а только при изменении selectValue (области)
+  const geoObjects2 = useMemo(
+    () =>
+      statesData.features
+        .filter((state) => state.properties.NAME_1 === selectValue)
+        .map((state) => {
+          const geoNames2 = state.properties.NAME_2;
+
+          return geoNames2;
+        }),
+    [selectValue]
+  );
+
+  // убрала дубликаты
+  const newGeoArr = () =>
+    geoObjects
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .map((item) => ({
+        value: item,
+        label: item,
+      }));
+
+  const newGeoArr2 = () =>
+    geoObjects2.map((item) => ({
       value: item,
       label: item,
     }));
-  };
-  const newGeoArr2 = () => {
-    return geoObjects2.map((item) => ({
-      value: item,
-      label: item,
-    }));
-  };
+
+  // useCallback для оптимизации, чтобы функция не
+  // генерилась при каждом ререндере
+  const checkFillColor = useCallback(
+    (state, region) => {
+      if (selectValue2 === region) {
+        return "green";
+      }
+      if (selectValue === state) {
+        return "red";
+      }
+      return "#FD8D3C";
+    },
+    [selectValue, selectValue2]
+  );
+
   return (
     <div className="map-main-container">
       <Select
         options={newGeoArr()}
         defaultValue={selectValue}
         className="custom-select"
-        onChange={({ value }) => setSelectValue(value)}
+        onChange={({ value }) => {
+          setIsSelected(false);
+          setSelectValue(value);
+          setSelectValue2(0);
+        }}
       />
       <Select
+        isDisabled={isFirstSelected}
         options={newGeoArr2()}
-        defaultValue={selectValue2}
         className="custom-select"
-        onChange={({ value2 }) => setSelectValue2(value2)}
+        onChange={({ value }) => setSelectValue2(value)}
       />
-      <MapContainer className="map-container" center={center} zoom={5}>
+
+      <MapContainer className="map-container" center={center} zoom={4}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {statesData.features.map((state) => {
+        {statesData.features.map((state, index) => {
           const coordinates = state.geometry.coordinates[0].map((item) => [
             item[1],
             item[0],
@@ -62,11 +101,12 @@ export default function App() {
           <Marker position={center} />;
           return (
             <Polygon
+              key={index}
               pathOptions={{
-                fillColor:
-                  selectValue === state.properties.NAME_1 ? "red" : "#FD8D3C",
-                // fillColor:
-                //   selectValue2 === state.properties.NAME_2 ? "red" : "#FD8D3C",
+                fillColor: checkFillColor(
+                  state?.properties.NAME_1,
+                  state?.properties?.NAME_2
+                ),
                 fillOpacity: 0.7,
                 weight: 2,
                 opacity: 1,
@@ -93,11 +133,13 @@ export default function App() {
                     weight: 2,
                     dashArray: "3",
                     color: "white",
-                    fillColor: "#FD8D3C",
+                    fillColor: checkFillColor(
+                      state?.properties.NAME_1,
+                      state?.properties?.NAME_2
+                    ),
                   });
                 },
                 click: (e) => {
-                  console.log(state.properties.NAME_2);
                   const layer = e.target;
                   layer.setStyle({
                     fillOpacity: 0.7,
