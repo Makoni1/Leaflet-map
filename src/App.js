@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { statesData } from "./data";
+import { statesData } from "./geo";
+import { dataRegions } from "./data";
 import "./App.css";
 import Select from "react-select";
-
 const center = [47.654444, 57.9340307];
 
 export default function App() {
@@ -25,12 +25,11 @@ export default function App() {
     []
   );
 
-  // Мемо для того, чтобы функция не запускалась при
-  // каждом ререндере, а только при изменении selectValue (области)
+
   const geoObjects2 = useMemo(
     () =>
-      statesData.features
-        .filter((state) => state.properties.NAME_1 === selectValue)
+      dataRegions.features
+        .filter((state) => state.properties.GID_1 === selectValue)
         .map((state) => {
           const geoNames2 = state.properties.NAME_2;
 
@@ -39,7 +38,6 @@ export default function App() {
     [selectValue]
   );
 
-  // убрала дубликаты
   const newGeoArr = () =>
     geoObjects
       .filter((value, index, self) => self.indexOf(value) === index)
@@ -49,11 +47,14 @@ export default function App() {
       }));
 
   const newGeoArr2 = () =>
-    geoObjects2.map((item) => ({
-      value: item,
-      label: item,
-    }));
+    geoObjects2
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .map((item) => ({
+        value: item,
+        label: item,
+      }));
 
+  console.log(newGeoArr2());
   // useCallback для оптимизации, чтобы функция не
   // генерилась при каждом ререндере
   const checkFillColor = useCallback(
@@ -87,8 +88,7 @@ export default function App() {
         className="custom-select"
         onChange={({ value }) => setSelectValue2(value)}
       />
-
-      <MapContainer className="map-container" center={center} zoom={4}>
+      <MapContainer className="map-container" center={center} zoom={5}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
