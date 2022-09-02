@@ -11,7 +11,7 @@ export default function App() {
   const [isFirstSelected, setIsSelected] = useState(true);
   const [selectValue, setSelectValue] = useState(0);
   const [selectValue2, setSelectValue2] = useState(0);
-
+  const [colored, setColored] = useState(0);
   // Мемо для того, чтобы функция не запускалась при
   // каждом ререндере
 
@@ -68,7 +68,7 @@ export default function App() {
       if (selectValue === state) {
         return 'red';
       }
-      return '#FD8D3C';
+     
     },
     [selectValue, selectValue2]
   );
@@ -84,7 +84,14 @@ export default function App() {
       return false;
     }
   };
-  
+ 
+  const activeColor = (colored) => {
+      if(colored) {
+        colored.setStyle({ fillColor: 'white'})
+      } else {
+        colored.setStyle({ color: "none"})
+      }
+  }
 
   const changeRegion = (value) => {
     setIsSelected(false);
@@ -103,12 +110,14 @@ export default function App() {
         }}
       />
       <Select
+        value={colored}
         isDisabled={isFirstSelected}
         options={newGeoArr2()}
         className="custom-select"
         onChange={({ value }) => {setSelectValue2(value);
         selectChange(false);
         }}
+        onClick={(e) => {setColored(e)} }
       />
       <MapContainer className="map-container" center={center} zoom={5}>
         <TileLayer
@@ -123,17 +132,21 @@ export default function App() {
           <Marker position={center} />;
           return (
             <Polygon
-              key={index}
-              pathOptions={{
-                fillColor: checkFillColor(
-                  state?.properties.GID_1,
-                  state?.properties.NAME_2
+            key={index}
+            value={colored}
+            // onChange={(e) => {
+            //   setCurrentColor(e)
+            // }}
+            pathOptions={{
+              fillColor: checkFillColor(
+                state?.properties.GID_1,
+                state?.properties.NAME_2
                 ),
+                color: activeColor (),
                 fillOpacity: 0.7,
                 weight: 2,
                 opacity: 1,
                 dashArray: 3,
-                color: 'white',
               }}
               positions={coordinates}
               eventHandlers={{
