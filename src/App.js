@@ -6,7 +6,7 @@ import { dataRegions } from './data';
 import './App.css';
 import Select from 'react-select';
 const center = [47.654444, 57.9340307];
-
+var polygon = statesData
 export default function App() {
   const [isFirstSelected, setIsSelected] = useState(true);
   const [selectValue, setSelectValue] = useState(0);
@@ -23,7 +23,8 @@ export default function App() {
       })),
     []
   );
-  console.log(geoObjects);
+ 
+  // console.log(geoObjects);
   // Мемо для того, чтобы функция не запускалась при
   // каждом ререндере, а только при изменении selectValue (области)
   const geoObjects2 = useMemo(
@@ -39,6 +40,7 @@ export default function App() {
   );
 
   console.log(geoObjects2);
+// console.log(geoObjects);
 
   const newGeoArr = () =>
     geoObjects
@@ -71,12 +73,25 @@ export default function App() {
     [selectValue, selectValue2]
   );
 
+  const selectChange = () => {
+    if (selectValue2.length > 0) {
+      console.log("1")
+      polygon = dataRegions
+      return true;
+    }
+    else {
+      console.log("0")
+      return false;
+    }
+  };
+  
+
   const changeRegion = (value) => {
     setIsSelected(false);
     setSelectValue(value);
-    setSelectValue2(0);
+    setSelectValue2(value);
   };
-  console.log(selectValue);
+  console.log(selectValue2);
   return (
     <div className="map-main-container">
       <Select
@@ -91,19 +106,20 @@ export default function App() {
         isDisabled={isFirstSelected}
         options={newGeoArr2()}
         className="custom-select"
-        onChange={({ value }) => setSelectValue2(value)}
+        onChange={({ value }) => {setSelectValue2(value);
+        selectChange(false);
+        }}
       />
       <MapContainer className="map-container" center={center} zoom={5}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {statesData.features.map((state, index) => {
+        { polygon.features.map((state, index) => {
           const coordinates = state.geometry.coordinates[0].map((item) => [
             item[1],
             item[0],
           ]);
-
           <Marker position={center} />;
           return (
             <Polygon
@@ -111,7 +127,7 @@ export default function App() {
               pathOptions={{
                 fillColor: checkFillColor(
                   state?.properties.GID_1,
-                  state?.properties?.NAME_2
+                  state?.properties.NAME_2
                 ),
                 fillOpacity: 0.7,
                 weight: 2,
@@ -141,7 +157,7 @@ export default function App() {
                     color: 'white',
                     fillColor: checkFillColor(
                       state?.properties.GID_1,
-                      state?.properties?.NAME_2
+                      state?.properties.NAME_2
                     ),
                   });
                 },
@@ -157,7 +173,7 @@ export default function App() {
                 },
               }}
             >
-              <Popup>{state.properties.NAME_1}</Popup>
+              <Popup>{state.properties.NAME_2}</Popup>
             </Polygon>
           );
         })}
