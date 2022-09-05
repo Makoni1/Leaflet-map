@@ -5,13 +5,16 @@ import { statesData } from './geo';
 import { dataRegions } from './data';
 import './App.css';
 import Select from 'react-select';
-const center = [47.654444, 57.9340307];
+// const center = [47.654444, 57.9340307];
+
 var polygon = statesData
 export default function App() {
   const [isFirstSelected, setIsSelected] = useState(true);
   const [selectValue, setSelectValue] = useState(0);
   const [selectValue2, setSelectValue2] = useState(0);
-  const [colored, setColored] = useState(0);
+  // const [isSelectActive, setIsSelectActive] = useState(0);
+  const [mapCenter, setMapCenter ] = useState([47.654444, 57.9340307]);
+
   // Мемо для того, чтобы функция не запускалась при
   // каждом ререндере
 
@@ -40,7 +43,6 @@ export default function App() {
   );
 
   console.log(geoObjects2);
-// console.log(geoObjects);
 
   const newGeoArr = () =>
     geoObjects
@@ -65,10 +67,15 @@ export default function App() {
       if (selectValue2 === region) {
         return 'green';
       }
+      if (selectValue !== 0) {
+        return " transparent";
+      }
       if (selectValue === state) {
         return 'red';
       }
-     
+      else{
+        return "#FD8D3C";
+      }
     },
     [selectValue, selectValue2]
   );
@@ -84,21 +91,22 @@ export default function App() {
       return false;
     }
   };
- 
-  const activeColor = (colored) => {
-      if(colored) {
-        colored.setStyle({ fillColor: 'white'})
-      } else {
-        colored.setStyle({ color: "none"})
-      }
-  }
 
   const changeRegion = (value) => {
     setIsSelected(false);
     setSelectValue(value);
-    setSelectValue2(value);
+    // setSelectValue2(value);
   };
   console.log(selectValue2);
+
+  const selectCenter = (center) => {
+  //   () =>
+  //   dataRegions.features.map((state) => ({
+  //     value: state.properties.GID_1,
+  //     label: state.properties.NAME_1,
+  //   })),
+  // []
+  };
   return (
     <div className="map-main-container">
       <Select
@@ -110,16 +118,20 @@ export default function App() {
         }}
       />
       <Select
-        value={colored}
+        // value={colored}
         isDisabled={isFirstSelected}
         options={newGeoArr2()}
         className="custom-select"
         onChange={({ value }) => {setSelectValue2(value);
         selectChange(false);
+        // isSelectActive(true);
+        selectCenter(true);
         }}
-        onClick={(e) => {setColored(e)} }
       />
-      <MapContainer className="map-container" center={center} zoom={5}>
+      <MapContainer className="map-container" 
+        center={mapCenter} 
+        zoom={5} 
+        onChange={({center}) => selectCenter(center)} >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -129,24 +141,21 @@ export default function App() {
             item[1],
             item[0],
           ]);
-          <Marker position={center} />;
+          <Marker position={mapCenter} />;
           return (
             <Polygon
             key={index}
-            value={colored}
-            // onChange={(e) => {
-            //   setCurrentColor(e)
-            // }}
             pathOptions={{
               fillColor: checkFillColor(
                 state?.properties.GID_1,
                 state?.properties.NAME_2
-                ),
-                color: activeColor (),
+              ),
+                // color: isSelectActive ? 'white' : '',
                 fillOpacity: 0.7,
                 weight: 2,
                 opacity: 1,
                 dashArray: 3,
+
               }}
               positions={coordinates}
               eventHandlers={{
@@ -154,11 +163,11 @@ export default function App() {
                   const layer = e.target;
                   layer.setStyle({
                     dashArray: '',
-                    fillColor: '#BD0026',
+                    fillColor:'#BD0026',
                     fillOpacity: 0.7,
                     weight: 2,
                     opacity: 1,
-                    color: 'white',
+                    color: '',
                   });
                 },
                 mouseout: (e) => {
@@ -167,7 +176,7 @@ export default function App() {
                     fillOpacity: 0.7,
                     weight: 2,
                     dashArray: '3',
-                    color: 'white',
+                    color: '',
                     fillColor: checkFillColor(
                       state?.properties.GID_1,
                       state?.properties.NAME_2
@@ -181,7 +190,7 @@ export default function App() {
                     weight: 2,
                     dashArray: '3',
                     color: 'white',
-                    fillColor: 'white',
+                  //fillColor: 'white',
                   });
                 },
               }}
